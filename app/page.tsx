@@ -387,9 +387,9 @@ export default function HomePage() {
       value={activeTab}
       onValueChange={setActiveTab}
       orientation="vertical"
-      className="mx-auto min-h-screen w-full max-w-[1680px] gap-0 lg:grid lg:grid-cols-[224px_minmax(0,1fr)]"
+      className="mx-auto min-h-screen w-full max-w-[1680px] flex-col gap-0 overflow-x-hidden lg:grid lg:grid-cols-[224px_minmax(0,1fr)]"
     >
-      <aside className="z-30 border-r border-white/10 bg-[#101b39] text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
+      <aside className="z-30 h-0 w-full shrink-0 overflow-visible border-0 bg-transparent text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-auto lg:flex-col lg:border-r lg:border-white/10 lg:bg-[#101b39]">
         <div className="hidden items-center gap-3 px-6 pb-7 pt-7 lg:flex">
           <div className="grid size-10 place-items-center rounded-[14px] bg-[#efb94f] text-[#16213f] shadow-lg shadow-[#efb94f]/15">
             <Sparkles className="size-5" />
@@ -400,14 +400,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        <TabsList className="fixed inset-x-3 bottom-3 z-40 grid h-[68px] w-auto grid-cols-5 rounded-[22px] border border-white/10 bg-[#101b39]/95 p-2 shadow-2xl shadow-slate-950/30 backdrop-blur-xl lg:static lg:mx-3 lg:flex lg:h-auto lg:w-auto lg:flex-1 lg:flex-col lg:justify-start lg:gap-1 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+        <TabsList
+          className="fixed inset-x-3 z-50 !grid !h-[68px] !w-auto !grid-cols-5 !flex-row rounded-[22px] border border-white/10 bg-[#101b39]/95 p-2 shadow-2xl shadow-slate-950/30 backdrop-blur-xl lg:static lg:mx-3 lg:!flex lg:!h-auto lg:!w-auto lg:flex-1 lg:!flex-col lg:justify-start lg:gap-1 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none"
+          style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <TabsTrigger
                 key={item.value}
                 value={item.value}
-                className="h-full flex-col gap-1 rounded-[15px] px-1 text-[11px] font-medium text-white/55 data-active:bg-white/10 data-active:text-[#f5c868] lg:h-11 lg:w-full lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-4 lg:text-[15px]"
+                className="h-full !w-auto flex-col !justify-center gap-1 rounded-[15px] px-1 text-[11px] font-medium text-white/55 data-active:bg-white/10 data-active:text-[#f5c868] lg:h-11 lg:!w-full lg:flex-none lg:flex-row lg:!justify-start lg:gap-3 lg:px-4 lg:text-[15px]"
               >
                 <Icon className="size-[19px]" />
                 <span>{item.label}</span>
@@ -425,8 +428,8 @@ export default function HomePage() {
         </div>
       </aside>
 
-      <section className="min-w-0 pb-28 lg:pb-0">
-        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 backdrop-blur-xl sm:px-7 lg:px-9">
+      <section className="min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 backdrop-blur-xl sm:h-[72px] sm:px-7 lg:px-9">
           <div className="flex items-center gap-3">
             <div className="grid size-9 place-items-center rounded-xl bg-[#101b39] text-[#f3bf58] lg:hidden">
               <Sparkles className="size-[18px]" />
@@ -515,7 +518,7 @@ export default function HomePage() {
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.48fr)_minmax(330px,0.72fr)]">
-              <section className="relative min-h-[540px] overflow-hidden rounded-[30px] bg-[#132143] text-white shadow-[0_28px_70px_-38px_rgba(10,23,55,0.75)]">
+              <section className="relative min-h-[500px] overflow-hidden rounded-[26px] bg-[#132143] text-white shadow-[0_28px_70px_-38px_rgba(10,23,55,0.75)] sm:min-h-[540px] sm:rounded-[30px]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_22%,rgba(245,194,94,0.22),transparent_28%),linear-gradient(130deg,rgba(20,36,76,0.25),rgba(7,14,34,0.72))]" />
                 <div className="absolute inset-y-0 right-0 w-[62%] overflow-hidden max-md:w-full max-md:opacity-70">
                   <img
@@ -526,7 +529,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#132143] via-[#132143]/20 to-transparent md:from-[#132143]/85" />
                 </div>
 
-                <div className="relative z-10 flex min-h-[540px] flex-col justify-between p-6 sm:p-8 lg:p-10">
+                <div className="relative z-10 flex min-h-[500px] flex-col justify-between p-5 sm:min-h-[540px] sm:p-8 lg:p-10">
                   <div>
                     <Badge className="mb-5 border-white/15 bg-white/10 text-white" variant="outline">
                       <Bot /> AI 星伴 · 非真人

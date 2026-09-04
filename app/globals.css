@@ -127,6 +127,7 @@
     @apply bg-background text-foreground;
     min-width: 320px;
     min-height: 100vh;
+    overflow-x: hidden;
     background-image:
       radial-gradient(circle at 78% 0%, oklch(0.88 0.08 78 / 0.22), transparent 31rem),
       linear-gradient(180deg, oklch(0.98 0.008 261), oklch(0.955 0.018 260));
