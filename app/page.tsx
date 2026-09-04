@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   Award,
   Bell,
@@ -380,12 +380,7 @@ export default function HomePage() {
     );
   }
 
-  const currentGreeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 11) return '早上好';
-    if (hour < 18) return '下午好';
-    return '晚上好';
-  }, []);
+  const currentGreeting = '晚上好';
 
   return (
     <Tabs
