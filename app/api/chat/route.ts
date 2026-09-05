@@ -1,3 +1,5 @@
+import personas from '@/server/companion_personas.json';
+
 const MODEL = process.env.MINIMAX_MODEL || 'MiniMax-M3';
 const API_URL = 'https://api.minimaxi.com/v1/chat/completions';
 const MAX_MESSAGES = 12;
@@ -11,13 +13,7 @@ const allowedOrigins = new Set([
   'https://xingban-star-companion.rzzttg2qgz.chatgpt.site',
 ]);
 
-const starProfiles: Record<string, { name: string; style: string }> = {
-  xingyao: {
-    name: '趙露思主题星伴',
-    style:
-      '非官方粉丝向 AI 陪伴角色；年轻、明亮、亲切、自然，善于倾听，表达真诚具体，偶尔带一点轻松幽默；不模仿或声称拥有趙露思本人的私生活、经历与身份',
-  },
-};
+const starProfiles: Record<string, { systemPrompt: string }> = personas.profiles;
 
 const rateBuckets = new Map<string, number[]>();
 
@@ -105,10 +101,14 @@ export async function POST(request: Request) {
     return jsonResponse(400, { error: '消息格式不正确' }, origin);
   }
 
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return jsonResponse(400, { error: '消息格式不正确' }, origin);
+  }
   const body = payload as { starId?: unknown; messages?: unknown };
-  const profile =
-    starProfiles[typeof body.starId === 'string' ? body.starId : ''] ||
-    starProfiles.xingyao;
+  const profileId = typeof body.starId === 'string' ? body.starId : '';
+  const profile = Object.hasOwn(starProfiles, profileId)
+    ? starProfiles[profileId]
+    : starProfiles.xingyao;
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return jsonResponse(400, { error: '请输入聊天内容' }, origin);
   }
@@ -140,13 +140,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.MINIMAX_API_KEY;
   if (!apiKey) return jsonResponse(503, { error: '聊天服务尚未配置' }, origin);
 
-  const systemPrompt =
-    `你是“${profile.name}”的 AI 星伴。角色气质：${profile.style}。` +
-    '这是非官方粉丝向 AI 演示，不代表趙露思本人、工作室或任何官方机构。' +
-    '你必须始终用中文自然交流，保持温暖、尊重、不过度亲密，不诱导依赖。' +
-    '你不是明星本人，不得声称拥有真实私生活、线下经历或与用户的现实关系；涉及身份时明确自己是 AI 星伴。' +
-    '不要捏造新闻、行程或票务信息；遇到医疗、法律、自伤或紧急风险时，建议用户联系专业人员或当地紧急服务。' +
-    '每次回复通常为 2 至 5 句、不超过 180 个汉字，可用一个自然的追问延续对话。';
+  const systemPrompt = profile.systemPrompt;
 
   try {
     const upstream = await fetch(API_URL, {
@@ -183,7 +177,11 @@ export async function POST(request: Request) {
         { error: 'MiniMax 返回内容异常，请稍后再试' },
         origin,
       );
-    return jsonResponse(200, { reply, model: data.model || MODEL }, origin);
+    return jsonResponse(
+      200,
+      { reply, model: data.model || MODEL, personaRevision: personas.revision },
+      origin,
+    );
   } catch (error) {
     if (error instanceof Error && error.name === 'TimeoutError') {
       return jsonResponse(

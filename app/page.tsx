@@ -1232,10 +1232,10 @@ export default function HomePage() {
                     </span>
                     <div>
                       <h1 className="font-black text-[#17213f]">
-                        和{star.name}说悄悄话
+                        {star.name}主题 · 悄悄话
                       </h1>
-                      <p className="text-xs text-slate-500">
-                        MiniMax 实时生成 · 官方系统音色
+                      <p className="text-sm text-slate-500">
+                        AI 角色扮演 · 非本人
                       </p>
                     </div>
                   </div>
@@ -1279,9 +1279,9 @@ export default function HomePage() {
                   ref={chatScrollRef}
                   className="flex-1 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,#f8faff,#ffffff)] px-4 py-6 sm:px-8"
                 >
-                  <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-                    这是非官方粉丝向 AI 对话，不代表趙露思本人或工作室。语音使用
-                    MiniMax 官方系统音色，不使用本人声纹；请勿依赖它处理医疗、法律或紧急问题。
+                  <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                    你正在与趙露思主题 AI 进行虚构角色扮演，并非与本人聊天，不代表本人或工作室。
+                    回复由 MiniMax 实时生成，语音使用系统音色，不使用本人声纹；请勿依赖它处理医疗、法律或紧急问题。
                   </div>
                   {messages.length === 0 && (
                     <div className="mx-auto max-w-md py-10 text-center">
@@ -1289,7 +1289,7 @@ export default function HomePage() {
                         <Sparkles className="size-5" />
                       </span>
                       <p className="font-bold text-[#17213f]">
-                        现在可以开始真实对话
+                        今天，想和露思主题 AI 聊点什么？
                       </p>
                       <p className="mt-2 text-sm leading-6 text-slate-500">
                         打字或点击麦克风说出心情，回复将由 MiniMax

@@ -30,6 +30,10 @@ npm run build
 
 ## MiniMax 对话与语音服务
 
+悄悄话使用明确标注的“赵露思主题 AI 角色扮演”：以第一人称自然接话、回应用户情绪与当前聊天细节，不作为百科或客服式助手。首次回复说明主题 AI 身份，直接询问身份时明确非本人；不冒充艺人、不编造其私人经历、真实关系、行程或官方授权。聊天页标题和提示始终标明 AI 角色扮演、非本人。音色不变。
+
+角色设定统一保存在 `server/companion_personas.json`，Sites API 和 Python 服务读取同一份内容，并在聊天响应中返回 `personaRevision`，避免两处提示词不一致。自建服务器发布时须同时部署该 JSON 和 `server/chat_api.py`，并更新实际运行的聊天服务；当前生产使用 Docker 容器 `xingban-api`，须将完整 `server` 目录只读挂载到 `/app`，不能只挂载单个 Python 文件。`deploy/xingban-chat.service` 仅为可选的 systemd 部署模板。不清空用户已有聊天记录。
+
 悄悄话通过服务端 API 调用最新 MiniMax M3 生成真实回复，再用最新一代 MiniMax Speech 2.8 Turbo 合成 MP3 语音，API 密钥不会发送到浏览器。用户语音由浏览器麦克风实时识别成文字，并在本次会话中保留可回放的原始录音；不支持语音识别的浏览器会提示改用文字输入。
 
 `server/chat_api.py` 是自建服务器的可选代理实现；复制 `.env.example` 并设置 `MINIMAX_API_KEY` 后可启动：

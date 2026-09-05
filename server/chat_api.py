@@ -9,6 +9,7 @@ import time
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 
 PORT = int(os.environ.get("PORT", "8788"))
@@ -27,18 +28,19 @@ ALLOWED_ORIGINS = {
     "https://xingban.xunlian.co",
     "https://xingban-star-companion.rzzttg2qgz.chatgpt.site",
 }
-STAR_PROFILES = {
-    "xingyao": (
-        "趙露思主题星伴",
-        "非官方粉丝向 AI 陪伴角色；年轻、明亮、亲切、自然，善于倾听，表达真诚具体，偶尔带一点轻松幽默；不模仿或声称拥有趙露思本人的私生活、经历与身份",
-    ),
-}
+PERSONAS = json.loads(Path(__file__).with_name("companion_personas.json").read_text(encoding="utf-8"))
 VOICE_PROFILES = {
     "xingyao": ("Chinese (Mandarin)_Warm_Girl", 1.02, 0, "happy"),
 }
 
 _rate_buckets = {}
 _rate_lock = threading.Lock()
+
+
+def build_system_prompt(star_id):
+    profiles = PERSONAS["profiles"]
+    profile = profiles.get(star_id, profiles["xingyao"]) if isinstance(star_id, str) else profiles["xingyao"]
+    return profile["systemPrompt"]
 
 
 def is_allowed_origin(origin):
@@ -122,7 +124,7 @@ class ChatHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/healthz":
-            self.send_json(200, {"status": "ok", "model": MODEL})
+            self.send_json(200, {"status": "ok", "model": MODEL, "personaRevision": PERSONAS["revision"]})
             return
         self.send_json(405, {"error": "仅支持 POST 请求"})
 
@@ -154,13 +156,14 @@ class ChatHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "消息格式不正确"})
             return
 
+        if not isinstance(payload, dict):
+            self.send_json(400, {"error": "消息格式不正确"})
+            return
+
         if self.path == "/api/voice":
             self.handle_voice(payload)
             return
 
-        star_name, star_style = STAR_PROFILES.get(
-            payload.get("starId"), STAR_PROFILES["xingyao"]
-        )
         raw_messages = payload.get("messages")
         if not isinstance(raw_messages, list) or not raw_messages:
             self.send_json(400, {"error": "请输入聊天内容"})
@@ -189,14 +192,7 @@ class ChatHandler(BaseHTTPRequestHandler):
             self.send_json(503, {"error": "聊天服务尚未配置"})
             return
 
-        system_prompt = (
-            f"你是“{star_name}”的 AI 星伴。角色气质：{star_style}。"
-            "这是非官方粉丝向 AI 演示，不代表趙露思本人、工作室或任何官方机构。"
-            "你必须始终用中文自然交流，保持温暖、尊重、不过度亲密，不诱导依赖。"
-            "你不是明星本人，不得声称拥有真实私生活、线下经历或与用户的现实关系；涉及身份时明确自己是 AI 星伴。"
-            "不要捏造新闻、行程或票务信息；遇到医疗、法律、自伤或紧急风险时，建议用户联系专业人员或当地紧急服务。"
-            "每次回复通常为 2 至 5 句、不超过 180 个汉字，可用一个自然的追问延续对话。"
-        )
+        system_prompt = build_system_prompt(payload.get("starId"))
         upstream_payload = json.dumps(
             {
                 "model": MODEL,
@@ -225,7 +221,7 @@ class ChatHandler(BaseHTTPRequestHandler):
             reply = clean_reply(upstream.get("choices", [{}])[0].get("message", {}).get("content", ""))
             if not reply:
                 raise ValueError("empty response")
-            self.send_json(200, {"reply": reply, "model": upstream.get("model", MODEL)})
+            self.send_json(200, {"reply": reply, "model": upstream.get("model", MODEL), "personaRevision": PERSONAS["revision"]})
         except urllib.error.HTTPError as error:
             print("MiniMax HTTP error: %s" % error.code, flush=True)
             self.send_json(502, {"error": "MiniMax 暂时无法生成回复，请稍后再试"})
