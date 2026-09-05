@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ListenTogether } from '@/components/listen-together';
 
 declare global {
   interface Document {
@@ -251,6 +252,7 @@ export default function HomePage() {
   const voiceStartedAtRef = useRef(0);
   const voiceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlsRef = useRef(new Set<string>());
 
   const level = 7;
@@ -374,10 +376,17 @@ export default function HomePage() {
               }));
               setFedToday((current) => Math.min(2, current + 1));
             } else {
-              setStats((current) => ({
-                ...current,
-                mood: clamp(current.mood + 8),
-              }));
+              setActiveTab('home');
+              await afterPaint();
+              const audio = musicAudioRef.current;
+              if (!audio) throw new Error('播放器尚未就绪，请点击“一起听歌”');
+              if (audio.error) audio.load();
+              try {
+                await audio.play();
+              } catch {
+                throw new Error('播放未开始，请在页面上点击“一起听歌”');
+              }
+              return { status: 'playing', action, track: '赵露思《是你》' };
             }
             setXp((current) => Math.min(100, current + 6));
             await afterPaint();
@@ -592,8 +601,12 @@ export default function HomePage() {
     }
 
     const audio = new Audio(audioUrl);
+    musicAudioRef.current?.pause();
     activeAudioRef.current = audio;
-    audio.onplay = () => setPlayingMessageId(message.id);
+    audio.onplay = () => {
+      musicAudioRef.current?.pause();
+      setPlayingMessageId(message.id);
+    };
     audio.onended = () => {
       setPlayingMessageId(null);
       activeAudioRef.current = null;
@@ -669,6 +682,8 @@ export default function HomePage() {
 
   async function startVoiceInput() {
     if (isSending || isListening) return;
+    musicAudioRef.current?.pause();
+    stopActiveAudio();
     setChatError('');
 
     const speechWindow = window as typeof window & {
@@ -725,6 +740,8 @@ export default function HomePage() {
       voiceStartedAtRef.current = Date.now();
 
       recognition.onstart = () => {
+        musicAudioRef.current?.pause();
+        stopActiveAudio();
         recorder.start(250);
         setIsListening(true);
         setVoiceSeconds(0);
@@ -1040,13 +1057,12 @@ export default function HomePage() {
                       >
                         <Utensils /> 喂一颗星糖
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="h-11 flex-1 border-white/15 bg-white/[0.06] px-4 text-white hover:bg-white/12 hover:text-white"
-                        onClick={() => careFor('mood', 8, '一起听歌')}
-                      >
-                        <Radio /> 一起听歌
-                      </Button>
+                      <ListenTogether
+                        audioRef={musicAudioRef}
+                        onPlay={stopActiveAudio}
+                        onFirstPlayback={() => careFor('mood', 8, '一起听歌')}
+                        disabled={isListening}
+                      />
                       <Button
                         size="icon-lg"
                         variant="outline"
