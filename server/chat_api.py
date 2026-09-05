@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 PORT = int(os.environ.get("PORT", "8788"))
-MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M2.7-highspeed")
+MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M3")
 API_URL = "https://api.minimaxi.com/v1/chat/completions"
 TTS_API_URL = "https://api.minimaxi.com/v1/t2a_v2"
 TTS_MODEL = os.environ.get("MINIMAX_TTS_MODEL", "speech-2.8-turbo")
@@ -199,9 +199,9 @@ class ChatHandler(BaseHTTPRequestHandler):
                 "model": MODEL,
                 "messages": [{"role": "system", "content": system_prompt}] + messages,
                 "temperature": 1.0,
-                "top_p": 0.9,
+                "top_p": 0.95,
                 "max_completion_tokens": 450,
-                "reasoning_split": True,
+                "thinking": {"type": "disabled"},
             },
             ensure_ascii=False,
         ).encode("utf-8")

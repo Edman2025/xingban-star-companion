@@ -1,4 +1,4 @@
-const MODEL = process.env.MINIMAX_MODEL || 'MiniMax-M2.7-highspeed';
+const MODEL = process.env.MINIMAX_MODEL || 'MiniMax-M3';
 const API_URL = 'https://api.minimaxi.com/v1/chat/completions';
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_CHARS = 600;
@@ -132,9 +132,9 @@ export async function POST(request: Request) {
         model: MODEL,
         messages: [{ role: 'system', content: systemPrompt }, ...messages],
         temperature: 1,
-        top_p: 0.9,
+        top_p: 0.95,
         max_completion_tokens: 450,
-        reasoning_split: true,
+        thinking: { type: 'disabled' },
       }),
       signal: AbortSignal.timeout(45_000),
     });

@@ -20,7 +20,7 @@ npm run build
 
 ## MiniMax 对话与语音服务
 
-悄悄话通过服务端 API 调用 MiniMax M2.7 生成真实回复，再用 MiniMax Speech 2.8 Turbo 合成 MP3 语音，API 密钥不会发送到浏览器。用户语音由浏览器麦克风实时识别成文字，并在本次会话中保留可回放的原始录音；不支持语音识别的浏览器会提示改用文字输入。
+悄悄话通过服务端 API 调用最新 MiniMax M3 生成真实回复，再用最新一代 MiniMax Speech 2.8 Turbo 合成 MP3 语音，API 密钥不会发送到浏览器。用户语音由浏览器麦克风实时识别成文字，并在本次会话中保留可回放的原始录音；不支持语音识别的浏览器会提示改用文字输入。
 
 `server/chat_api.py` 是自建服务器的可选代理实现；复制 `.env.example` 并设置 `MINIMAX_API_KEY` 后可启动：
 
