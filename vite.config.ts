@@ -15,6 +15,10 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === 'seatbelt';
 const localBindingConfig = {
   main: 'vinext/server/fetch-handler',
   compatibility_flags: ['nodejs_compat'],
+  // Expose only this non-secret local relay setting to the dev Worker.
+  ...(process.env.COMMUNITY_API_ORIGIN
+    ? { vars: { COMMUNITY_API_ORIGIN: process.env.COMMUNITY_API_ORIGIN } }
+    : {}),
   d1_databases: d1
     ? [
         {

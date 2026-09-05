@@ -28,7 +28,6 @@ import {
   Sparkles,
   Star,
   Ticket,
-  Trophy,
   UserRound,
   Users,
   Utensils,
@@ -49,6 +48,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ListenTogether } from '@/components/listen-together';
+import { CommunityFeed } from '@/components/community-feed';
 
 declare global {
   interface Document {
@@ -168,41 +168,6 @@ const feedItems = [
   },
 ];
 
-const communityPosts = [
-  {
-    id: 1,
-    author: '遥光收藏家',
-    level: 18,
-    time: '6 分钟前',
-    text: '连续陪伴第 100 天！今天解锁了“清晨电台”回忆卡，AI 合成的声音听起来很温暖。',
-    tag: '养成记录',
-    likes: 328,
-    comments: 42,
-    initial: '河',
-  },
-  {
-    id: 2,
-    author: '向光生长',
-    level: 12,
-    time: '28 分钟前',
-    text: '整理了线上首演的预约和观看清单，第一次参加的星友可以参考。记得只走官方入口！',
-    tag: '首演互助',
-    likes: 196,
-    comments: 31,
-    initial: '光',
-  },
-  {
-    id: 3,
-    author: '晴天播放键',
-    level: 9,
-    time: '1 小时前',
-    text: '《向晴而行》概念短片里的星轨发夹很有意思，做了一个不剧透的细节分析。',
-    tag: '新歌讨论',
-    likes: 121,
-    comments: 18,
-    initial: '七',
-  },
-];
 
 function clamp(value: number) {
   return Math.max(0, Math.min(100, value));
@@ -237,7 +202,6 @@ export default function HomePage() {
     concert: true,
     movie: false,
   });
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [status, setStatus] = useState('');
   const [mounted, setMounted] = useState(false);
   const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -275,7 +239,6 @@ export default function HomePage() {
         if (Array.isArray(data.messages)) setMessages(data.messages);
         if (typeof data.autoVoice === 'boolean') setAutoVoice(data.autoVoice);
         if (data.reminders) setReminders(data.reminders);
-        if (Array.isArray(data.likedPosts)) setLikedPosts(data.likedPosts);
       }
     } catch {
       // Invalid demo storage is ignored and replaced on the next state change.
@@ -301,7 +264,6 @@ export default function HomePage() {
         ),
         autoVoice,
         reminders,
-        likedPosts,
       }),
     );
   }, [
@@ -313,7 +275,6 @@ export default function HomePage() {
     messages,
     autoVoice,
     reminders,
-    likedPosts,
   ]);
 
   useEffect(() => {
@@ -806,13 +767,6 @@ export default function HomePage() {
     });
   }
 
-  function toggleLike(postId: number) {
-    setLikedPosts((current) =>
-      current.includes(postId)
-        ? current.filter((id) => id !== postId)
-        : [...current, postId],
-    );
-  }
 
   const currentGreeting = '晚上好';
 
@@ -1630,125 +1584,7 @@ export default function HomePage() {
             value="community"
             className="mx-auto max-w-[1180px] space-y-6"
           >
-            <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <p className="mb-1 text-sm font-semibold text-[#b47720]">
-                  和 28,619 位星友一起
-                </p>
-                <h1 className="text-3xl font-black tracking-tight text-[#17213f]">
-                  粉丝社区
-                </h1>
-              </div>
-              <Button
-                onClick={() => announce('发布入口已打开：MVP 暂以演示数据展示')}
-              >
-                发布动态
-              </Button>
-            </section>
-
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <section className="space-y-4">
-                {communityPosts.map((post) => {
-                  const liked = likedPosts.includes(post.id);
-                  return (
-                    <article
-                      key={post.id}
-                      className="rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6"
-                    >
-                      <div className="mb-4 flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-2xl bg-[#21365f] text-sm font-bold text-white">
-                          {post.initial}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-[#17213f]">
-                            {post.author}{' '}
-                            <span className="ml-1 text-xs font-medium text-[#b47720]">
-                              Lv.{post.level}
-                            </span>
-                          </p>
-                          <p className="text-xs text-slate-400">{post.time}</p>
-                        </div>
-                        <Badge variant="secondary">{post.tag}</Badge>
-                      </div>
-                      <p className="text-[15px] leading-7 text-slate-700">
-                        {post.text}
-                      </p>
-                      <div className="mt-5 flex items-center gap-1 border-t border-slate-100 pt-3">
-                        <Button
-                          variant="ghost"
-                          className={liked ? 'text-rose-600' : 'text-slate-500'}
-                          onClick={() => toggleLike(post.id)}
-                        >
-                          <Heart className={liked ? 'fill-current' : ''} />
-                          {post.likes + (liked ? 1 : 0)}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="text-slate-500"
-                          onClick={() => announce('评论区将在下一步展开')}
-                        >
-                          <MessageCircle />
-                          {post.comments}
-                        </Button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </section>
-
-              <aside className="space-y-5">
-                <section className="rounded-[26px] border border-slate-200/80 bg-white p-5">
-                  <div className="mb-5 flex items-center gap-3">
-                    <div className="grid size-10 place-items-center rounded-2xl bg-[#fff4db] text-[#b47720]">
-                      <Trophy className="size-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">本周榜单</p>
-                      <h2 className="font-black text-[#17213f]">陪伴力排行</h2>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {[
-                      ['1', '遥光收藏家', '4,820'],
-                      ['2', '向光生长', '4,590'],
-                      ['3', '小行星 0719', '4,260'],
-                      ['18', '你', '2,180'],
-                    ].map(([rank, name, score]) => (
-                      <div
-                        key={name}
-                        className={`flex items-center gap-3 rounded-2xl p-3 ${name === '你' ? 'bg-[#fff4db]' : 'bg-slate-50'}`}
-                      >
-                        <span className="w-6 text-center text-sm font-black text-slate-400">
-                          {rank}
-                        </span>
-                        <span className="flex-1 text-sm font-semibold text-slate-700">
-                          {name}
-                        </span>
-                        <span className="text-xs font-bold text-[#b47720]">
-                          {score}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-                <section className="rounded-[26px] bg-[#17213f] p-5 text-white">
-                  <p className="text-xs font-semibold text-[#efbd59]">
-                    社区守则
-                  </p>
-                  <h2 className="mt-1 font-bold">真诚表达，也保护彼此</h2>
-                  <p className="mt-2 text-sm leading-6 text-white/60">
-                    禁止人肉、未授权交易、冒充明星或工作室。争议信息以官方来源为准。
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4 border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-                    onClick={() => announce('已打开完整社区守则')}
-                  >
-                    查看守则
-                  </Button>
-                </section>
-              </aside>
-            </div>
+            <CommunityFeed />
           </TabsContent>
 
           <TabsContent
