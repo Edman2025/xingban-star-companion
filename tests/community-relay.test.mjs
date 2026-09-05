@@ -167,7 +167,7 @@ test('the real community component replaces demo posts in the community tab only
     'utf8',
   );
   assert.match(page, /value="community"[\s\S]*?<CommunityFeed \/>/);
-  assert.match(page, /value="feed"[\s\S]*?feedItems\.map/);
+  assert.match(page, /value="feed"[\s\S]*?<StarArchive/);
   assert.doesNotMatch(
     page,
     /const communityPosts|MVP 暂以演示数据展示|28,619 位星友|likedPosts/,

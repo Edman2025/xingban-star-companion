@@ -49,6 +49,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ListenTogether } from '@/components/listen-together';
 import { CommunityFeed } from '@/components/community-feed';
+import { StarArchive } from '@/components/star-archive';
 
 declare global {
   interface Document {
@@ -131,7 +132,7 @@ function CompanionAvatar({
 const navItems = [
   { value: 'home', label: '今日陪伴', icon: Home },
   { value: 'chat', label: '悄悄话', icon: MessageCircle },
-  { value: 'feed', label: '官方动态', icon: Newspaper },
+  { value: 'feed', label: '影像与资料', icon: Newspaper },
   { value: 'community', label: '粉丝社区', icon: Users },
   { value: 'profile', label: '我的星球', icon: UserRound },
 ];
@@ -141,32 +142,6 @@ const CHAT_API_URL = '/api/chat';
 const VOICE_API_URL = '/api/voice';
 const STORAGE_KEY = 'xingban-mvp-state-v4';
 
-const feedItems = [
-  {
-    type: '新歌',
-    title: '原创单曲《向晴而行》概念短片上线',
-    body: '粉丝主题演示内容，用于展示动态聚合与提醒交互，并非真实艺人行程。',
-    time: '12 分钟前',
-    icon: Play,
-    accent: 'bg-[#e66e5f]',
-  },
-  {
-    type: '巡演',
-    title: '「把光唱给你」线上首演预约开启',
-    body: '9 月 12 日 20:00 开播，星友可提前预约并收到开场提醒。',
-    time: '1 小时前',
-    icon: Radio,
-    accent: 'bg-[#d89b36]',
-  },
-  {
-    type: '工作室',
-    title: '九月行程图已更新',
-    body: '创作直播、线上首演与星友见面会时间均已同步到星伴日历。',
-    time: '昨天 20:30',
-    icon: CalendarDays,
-    accent: 'bg-[#5576c9]',
-  },
-];
 
 
 function clamp(value: number) {
@@ -1130,44 +1105,11 @@ export default function HomePage() {
             </div>
 
             <section className="rounded-[26px] border border-slate-200/80 bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500">
-                    官方内容
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-[#17213f]">
-                    刚刚发生
-                  </h2>
-                </div>
-                <Button variant="ghost" onClick={() => setActiveTab('feed')}>
-                  查看全部 <ChevronRight />
-                </Button>
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black text-[#17213f]">影像与资料</h2>
+                <Button variant="ghost" onClick={() => setActiveTab('feed')}>查看资料 <ChevronRight /></Button>
               </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                {feedItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      type="button"
-                      key={item.title}
-                      onClick={() => setActiveTab('feed')}
-                      className="group rounded-2xl border border-slate-200 p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#e3b14e]/25"
-                    >
-                      <span
-                        className={`mb-4 grid size-10 place-items-center rounded-2xl text-white ${item.accent}`}
-                      >
-                        <Icon className="size-5" />
-                      </span>
-                      <span className="mb-1 block text-xs font-semibold text-slate-400">
-                        {item.type} · {item.time}
-                      </span>
-                      <span className="block font-bold text-[#17213f]">
-                        {item.title}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <StarArchive compact />
             </section>
           </TabsContent>
 
@@ -1487,97 +1429,9 @@ export default function HomePage() {
             </div>
           </TabsContent>
 
-          <TabsContent
-            value="feed"
-            className="mx-auto max-w-[1120px] space-y-6"
-          >
-            <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <p className="mb-1 text-sm font-semibold text-[#b47720]">
-                  来自工作室与合作方
-                </p>
-                <h1 className="text-3xl font-black tracking-tight text-[#17213f]">
-                  官方动态
-                </h1>
-              </div>
-              <Badge
-                className="w-fit bg-emerald-50 text-emerald-700"
-                variant="secondary"
-              >
-                <ShieldCheck /> 已验证来源
-              </Badge>
-            </section>
-
-            <section className="grid gap-4">
-              {feedItems.map((item, index) => {
-                const Icon = item.icon;
-                const key =
-                  index === 0 ? 'movie' : index === 1 ? 'concert' : 'schedule';
-                return (
-                  <article
-                    key={item.title}
-                    className="rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-7"
-                  >
-                    <div className="flex gap-4 sm:gap-5">
-                      <span
-                        className={`grid size-12 shrink-0 place-items-center rounded-[18px] text-white ${item.accent}`}
-                      >
-                        <Icon className="size-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary">{item.type}</Badge>
-                          <span className="text-xs text-slate-400">
-                            {item.time}
-                          </span>
-                        </div>
-                        <h2 className="text-lg font-black text-[#17213f] sm:text-xl">
-                          {item.title}
-                        </h2>
-                        <p className="mt-2 text-[15px] leading-7 text-slate-600">
-                          {item.body}
-                        </p>
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          <Button
-                            onClick={() =>
-                              announce(
-                                index === 1
-                                  ? '即将跳转至官方合作票务页面'
-                                  : '正在打开官方内容',
-                              )
-                            }
-                          >
-                            {index === 1 ? <Ticket /> : <Play />}
-                            {index === 1 ? '查看官方票务' : '查看详情'}
-                          </Button>
-                          {index < 2 && (
-                            <Button
-                              variant="outline"
-                              onClick={() => toggleReminder(key)}
-                            >
-                              {reminders[key] ? <Check /> : <Bell />}
-                              {reminders[key] ? '已提醒' : '提醒我'}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-
-            <section className="rounded-[26px] border border-blue-200/70 bg-blue-50/70 p-5 sm:p-6">
-              <div className="flex gap-3">
-                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-blue-700" />
-                <div>
-                  <h2 className="font-bold text-blue-950">票务安全说明</h2>
-                  <p className="mt-1 text-sm leading-6 text-blue-800/75">
-                    星伴只提供官宣信息、开售提醒和官方合作页面跳转，不自动抢票、不代收支付、不承诺购票结果。请勿在社区交换身份证或付款信息。
-                  </p>
-                </div>
-              </div>
-            </section>
+          <TabsContent value="feed" className="mx-auto max-w-[1120px] space-y-6">
+            <h1 className="text-3xl font-black tracking-tight text-[#17213f]">影像与资料</h1>
+            <StarArchive />
           </TabsContent>
 
           <TabsContent
