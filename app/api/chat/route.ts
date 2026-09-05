@@ -12,9 +12,11 @@ const allowedOrigins = new Set([
 ]);
 
 const starProfiles: Record<string, { name: string; style: string }> = {
-  lin: { name: '林澈', style: '歌手、演员；温柔、克制、真诚，擅长倾听并给予具体而不夸张的鼓励' },
-  xia: { name: '夏野', style: '唱作人；松弛、坦率、带一点幽默，用音乐感的表达陪伴用户' },
-  gu: { name: '顾时安', style: '演员；沉稳、细腻、有分寸，善于用简短问题帮助用户表达感受' },
+  xingyao: {
+    name: '星遥',
+    style:
+      '完全原创的 22 岁虚拟唱作人；年轻、明亮、亲切、自然，善于倾听，表达真诚具体，偶尔带一点轻松幽默',
+  },
 };
 
 const rateBuckets = new Map<string, number[]>();
@@ -38,12 +40,17 @@ function responseHeaders(origin: string | null) {
 }
 
 function jsonResponse(status: number, payload: unknown, origin: string | null) {
-  return new Response(JSON.stringify(payload), { status, headers: responseHeaders(origin) });
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: responseHeaders(origin),
+  });
 }
 
 function isRateLimited(clientIp: string) {
   const now = Date.now();
-  const recent = (rateBuckets.get(clientIp) || []).filter((timestamp) => now - timestamp < RATE_WINDOW_MS);
+  const recent = (rateBuckets.get(clientIp) || []).filter(
+    (timestamp) => now - timestamp < RATE_WINDOW_MS,
+  );
   if (recent.length >= RATE_LIMIT) {
     rateBuckets.set(clientIp, recent);
     return true;
@@ -52,7 +59,9 @@ function isRateLimited(clientIp: string) {
   rateBuckets.set(clientIp, recent);
   if (rateBuckets.size > 1000) {
     for (const [key, timestamps] of rateBuckets) {
-      const active = timestamps.filter((timestamp) => now - timestamp < RATE_WINDOW_MS);
+      const active = timestamps.filter(
+        (timestamp) => now - timestamp < RATE_WINDOW_MS,
+      );
       if (active.length) rateBuckets.set(key, active);
       else rateBuckets.delete(key);
     }
@@ -66,7 +75,8 @@ function cleanReply(content: string) {
 
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('Origin');
-  if (!isAllowedOrigin(origin)) return jsonResponse(403, { error: '当前来源不允许访问聊天服务' }, origin);
+  if (!isAllowedOrigin(origin))
+    return jsonResponse(403, { error: '当前来源不允许访问聊天服务' }, origin);
   const headers = responseHeaders(origin);
   headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
   headers.set('Access-Control-Allow-Headers', 'Content-Type');
@@ -76,11 +86,17 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   const origin = request.headers.get('Origin');
-  if (!isAllowedOrigin(origin)) return jsonResponse(403, { error: '当前来源不允许访问聊天服务' }, origin);
+  if (!isAllowedOrigin(origin))
+    return jsonResponse(403, { error: '当前来源不允许访问聊天服务' }, origin);
 
-  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const clientIp = forwardedFor || request.headers.get('cf-connecting-ip') || 'unknown';
-  if (isRateLimited(clientIp)) return jsonResponse(429, { error: '消息发送太频繁，请稍后再试' }, origin);
+  const forwardedFor = request.headers
+    .get('x-forwarded-for')
+    ?.split(',')[0]
+    ?.trim();
+  const clientIp =
+    forwardedFor || request.headers.get('cf-connecting-ip') || 'unknown';
+  if (isRateLimited(clientIp))
+    return jsonResponse(429, { error: '消息发送太频繁，请稍后再试' }, origin);
 
   let payload: unknown;
   try {
@@ -90,7 +106,9 @@ export async function POST(request: Request) {
   }
 
   const body = payload as { starId?: unknown; messages?: unknown };
-  const profile = starProfiles[typeof body.starId === 'string' ? body.starId : ''] || starProfiles.lin;
+  const profile =
+    starProfiles[typeof body.starId === 'string' ? body.starId : ''] ||
+    starProfiles.xingyao;
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return jsonResponse(400, { error: '请输入聊天内容' }, origin);
   }
@@ -100,14 +118,22 @@ export async function POST(request: Request) {
   for (const item of body.messages.slice(-MAX_MESSAGES)) {
     if (!item || typeof item !== 'object') continue;
     const message = item as { role?: unknown; content?: unknown };
-    if ((message.role !== 'user' && message.role !== 'assistant') || typeof message.content !== 'string') continue;
+    if (
+      (message.role !== 'user' && message.role !== 'assistant') ||
+      typeof message.content !== 'string'
+    )
+      continue;
     const content = message.content.trim().slice(0, MAX_MESSAGE_CHARS);
     if (!content) continue;
     totalChars += content.length;
     messages.push({ role: message.role, content });
   }
 
-  if (!messages.length || messages.at(-1)?.role !== 'user' || totalChars > MAX_TOTAL_CHARS) {
+  if (
+    !messages.length ||
+    messages.at(-1)?.role !== 'user' ||
+    totalChars > MAX_TOTAL_CHARS
+  ) {
     return jsonResponse(400, { error: '对话内容不符合要求' }, origin);
   }
 
@@ -116,6 +142,7 @@ export async function POST(request: Request) {
 
   const systemPrompt =
     `你是“${profile.name}”的 AI 星伴。角色气质：${profile.style}。` +
+    '这是原创虚拟角色，不基于或模仿任何真实人物、明星或现有作品角色。' +
     '你必须始终用中文自然交流，保持温暖、尊重、不过度亲密，不诱导依赖。' +
     '你不是明星本人，不得声称拥有真实私生活、线下经历或与用户的现实关系；涉及身份时明确自己是 AI 星伴。' +
     '不要捏造新闻、行程或票务信息；遇到医疗、法律、自伤或紧急风险时，建议用户联系专业人员或当地紧急服务。' +
@@ -138,19 +165,37 @@ export async function POST(request: Request) {
       }),
       signal: AbortSignal.timeout(45_000),
     });
-    if (!upstream.ok) return jsonResponse(502, { error: 'MiniMax 暂时无法生成回复，请稍后再试' }, origin);
+    if (!upstream.ok)
+      return jsonResponse(
+        502,
+        { error: 'MiniMax 暂时无法生成回复，请稍后再试' },
+        origin,
+      );
 
     const data = (await upstream.json()) as {
       model?: string;
       choices?: Array<{ message?: { content?: string } }>;
     };
     const reply = cleanReply(data.choices?.[0]?.message?.content || '');
-    if (!reply) return jsonResponse(502, { error: 'MiniMax 返回内容异常，请稍后再试' }, origin);
+    if (!reply)
+      return jsonResponse(
+        502,
+        { error: 'MiniMax 返回内容异常，请稍后再试' },
+        origin,
+      );
     return jsonResponse(200, { reply, model: data.model || MODEL }, origin);
   } catch (error) {
     if (error instanceof Error && error.name === 'TimeoutError') {
-      return jsonResponse(504, { error: 'MiniMax 响应超时，请稍后再试' }, origin);
+      return jsonResponse(
+        504,
+        { error: 'MiniMax 响应超时，请稍后再试' },
+        origin,
+      );
     }
-    return jsonResponse(502, { error: 'MiniMax 暂时无法生成回复，请稍后再试' }, origin);
+    return jsonResponse(
+      502,
+      { error: 'MiniMax 暂时无法生成回复，请稍后再试' },
+      origin,
+    );
   }
 }

@@ -11,15 +11,14 @@ const allowedOrigins = new Set([
 
 const voiceProfiles: Record<
   string,
-  { voiceId: string; speed: number; pitch: number }
+  { voiceId: string; speed: number; pitch: number; emotion: string }
 > = {
-  lin: { voiceId: 'Chinese (Mandarin)_Gentle_Youth', speed: 0.95, pitch: 0 },
-  xia: {
-    voiceId: 'Chinese (Mandarin)_Unrestrained_Young_Man',
-    speed: 1.03,
+  xingyao: {
+    voiceId: 'Chinese (Mandarin)_Warm_Girl',
+    speed: 1.02,
     pitch: 0,
+    emotion: 'happy',
   },
-  gu: { voiceId: 'Chinese (Mandarin)_Sincere_Adult', speed: 0.92, pitch: -1 },
 };
 
 const rateBuckets = new Map<string, number[]>();
@@ -110,7 +109,7 @@ export async function POST(request: Request) {
   if (!text) return jsonResponse(400, { error: '缺少需要朗读的内容' }, origin);
   const profile =
     voiceProfiles[typeof body.starId === 'string' ? body.starId : ''] ||
-    voiceProfiles.lin;
+    voiceProfiles.xingyao;
 
   const apiKey = process.env.MINIMAX_API_KEY;
   if (!apiKey) return jsonResponse(503, { error: '语音服务尚未配置' }, origin);
@@ -132,7 +131,7 @@ export async function POST(request: Request) {
           speed: profile.speed,
           vol: 1,
           pitch: profile.pitch,
-          emotion: 'calm',
+          emotion: profile.emotion,
         },
         audio_setting: {
           sample_rate: 32000,

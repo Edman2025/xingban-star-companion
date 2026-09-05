@@ -105,14 +105,12 @@ type StarProfile = {
 
 const stars: StarProfile[] = [
   {
-    id: 'lin',
-    name: '林澈',
-    initial: '澈',
-    role: '歌手 · 演员',
-    color: '#e56d5f',
+    id: 'xingyao',
+    name: '星遥',
+    initial: '遥',
+    role: '原创虚拟唱作人',
+    color: '#f0785d',
   },
-  { id: 'xia', name: '夏野', initial: '野', role: '唱作人', color: '#d89b36' },
-  { id: 'gu', name: '顾时安', initial: '安', role: '演员', color: '#5b7ed8' },
 ];
 
 const navItems = [
@@ -128,21 +126,21 @@ const CHAT_API_URL =
   'https://xingban-star-companion.rzzttg2qgz.chatgpt.site/api/chat';
 const VOICE_API_URL =
   'https://xingban-star-companion.rzzttg2qgz.chatgpt.site/api/voice';
-const STORAGE_KEY = 'xingban-mvp-state-v2';
+const STORAGE_KEY = 'xingban-mvp-state-v3';
 
 const feedItems = [
   {
-    type: '新片',
-    title: '电影《逆光而行》发布首支预告',
-    body: '林澈饰演的摄影师周叙首次亮相，官方预告片长 1 分 42 秒。',
+    type: '新歌',
+    title: '原创单曲《向晴而行》概念短片上线',
+    body: '星遥的首支原创概念短片已发布，记录从清晨城市到星光舞台的一天。',
     time: '12 分钟前',
     icon: Play,
     accent: 'bg-[#e66e5f]',
   },
   {
     type: '巡演',
-    title: '「沿途有光」巡演上海站官宣',
-    body: '9 月 12 日 14:00 开启预售，会员可提前 10 分钟收到提醒。',
+    title: '「把光唱给你」线上首演预约开启',
+    body: '9 月 12 日 20:00 开播，星友可提前预约并收到开场提醒。',
     time: '1 小时前',
     icon: Radio,
     accent: 'bg-[#d89b36]',
@@ -150,7 +148,7 @@ const feedItems = [
   {
     type: '工作室',
     title: '九月行程图已更新',
-    body: '品牌活动、杂志上线与直播时间均已同步到星伴日历。',
+    body: '创作直播、线上首演与星友见面会时间均已同步到星伴日历。',
     time: '昨天 20:30',
     icon: CalendarDays,
     accent: 'bg-[#5576c9]',
@@ -160,10 +158,10 @@ const feedItems = [
 const communityPosts = [
   {
     id: 1,
-    author: '澈夜星河',
+    author: '遥光收藏家',
     level: 18,
     time: '6 分钟前',
-    text: '连续陪伴第 100 天！今天解锁了“雨夜电台”回忆卡，配音氛围感太好了。',
+    text: '连续陪伴第 100 天！今天解锁了“清晨电台”回忆卡，系统音色听起来很温暖。',
     tag: '养成记录',
     likes: 328,
     comments: 42,
@@ -174,19 +172,19 @@ const communityPosts = [
     author: '向光生长',
     level: 12,
     time: '28 分钟前',
-    text: '整理了上海站交通和入场清单，第一次去现场的星友可以参考。记得只走官方票务入口！',
-    tag: '巡演互助',
+    text: '整理了线上首演的预约和观看清单，第一次参加的星友可以参考。记得只走官方入口！',
+    tag: '首演互助',
     likes: 196,
     comments: 31,
     initial: '光',
   },
   {
     id: 3,
-    author: '第七排座位',
+    author: '晴天播放键',
     level: 9,
     time: '1 小时前',
-    text: '新电影预告里的镜头语言很有意思，做了一个不剧透的细节分析。',
-    tag: '作品讨论',
+    text: '《向晴而行》概念短片里的星轨发夹很有意思，做了一个不剧透的细节分析。',
+    tag: '新歌讨论',
     likes: 121,
     comments: 18,
     initial: '七',
@@ -849,7 +847,7 @@ export default function HomePage() {
                   <Button
                     variant="ghost"
                     className="h-11 rounded-2xl px-2 hover:bg-slate-100 sm:px-3"
-                    aria-label="切换陪伴明星"
+                    aria-label="查看原创角色设定"
                   />
                 }
               >
@@ -864,7 +862,7 @@ export default function HomePage() {
                     {star.name}
                   </span>
                   <span className="block text-[11px] text-slate-500">
-                    官方陪伴空间
+                    原创角色空间
                   </span>
                 </span>
                 <ChevronDown className="size-4 text-slate-400" />
@@ -872,13 +870,14 @@ export default function HomePage() {
               <DialogContent className="max-w-[460px] rounded-[24px] p-6">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold">
-                    选择你的陪伴角色
+                    原创角色设定
                   </DialogTitle>
                   <DialogDescription>
-                    当前均为虚构演示角色。真实产品仅在完成姓名、肖像、声音与内容授权后开放。
+                    星遥是星伴首位完全原创的虚拟明星，不基于任何真人；语音使用
+                    MiniMax 官方系统音色。
                   </DialogDescription>
                 </DialogHeader>
-                <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                <div className="mt-2 grid gap-3">
                   {stars.map((profile) => (
                     <button
                       key={profile.id}
@@ -905,7 +904,7 @@ export default function HomePage() {
               className="hidden bg-emerald-50 text-emerald-700 sm:inline-flex"
               variant="secondary"
             >
-              <ShieldCheck /> 官方授权演示
+              <ShieldCheck /> 原创 IP · 系统音色
             </Badge>
           </div>
 
@@ -946,9 +945,9 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_22%,rgba(245,194,94,0.22),transparent_28%),linear-gradient(130deg,rgba(20,36,76,0.25),rgba(7,14,34,0.72))]" />
                 <div className="absolute inset-y-0 right-0 w-[62%] overflow-hidden max-md:w-full max-md:opacity-70">
                   <img
-                    src="/companion-hero.png"
-                    alt="原创虚构明星手办与迷你宠物伙伴站在星光舞台上"
-                    className="companion-float h-full w-full object-cover object-center"
+                    src="/xingyao-character.png"
+                    alt="原创虚拟明星星遥的全身卡通形象"
+                    className="companion-float h-full w-full object-contain object-center p-3 sm:p-5"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#132143] via-[#132143]/20 to-transparent md:from-[#132143]/85" />
                 </div>
@@ -962,7 +961,7 @@ export default function HomePage() {
                       <Bot /> AI 星伴 · 非真人
                     </Badge>
                     <p className="max-w-[420px] text-[clamp(1.45rem,3vw,2.15rem)] font-bold leading-[1.3] tracking-tight">
-                      “我把今天最好听的那一段，留到你来的时候再唱。”
+                      “今天也别急着赶路，我把好心情分你一半。”
                     </p>
                     <p className="mt-3 text-sm text-white/60">
                       — {star.name}的今日陪伴留言
@@ -973,7 +972,7 @@ export default function HomePage() {
                     <div className="mb-5 flex items-center justify-between">
                       <div>
                         <p className="text-xs text-white/50">手办形态</p>
-                        <p className="mt-1 font-bold">星夜舞台 · 成长型</p>
+                        <p className="mt-1 font-bold">晴空星轨 · 成长型</p>
                       </div>
                       <Badge className="bg-[#f2bf5d] text-[#17213f]">
                         Lv.{level}
@@ -1208,7 +1207,7 @@ export default function HomePage() {
                         和{star.name}说悄悄话
                       </h1>
                       <p className="text-xs text-slate-500">
-                        MiniMax 实时生成 · 记忆已开启
+                        MiniMax 实时生成 · 官方系统音色
                       </p>
                     </div>
                   </div>
@@ -1243,7 +1242,7 @@ export default function HomePage() {
                       className="hidden bg-blue-50 text-blue-700 sm:inline-flex"
                       variant="secondary"
                     >
-                      <Bot /> MiniMax
+                      <Bot /> MiniMax 系统音色
                     </Badge>
                   </div>
                 </div>
@@ -1253,8 +1252,8 @@ export default function HomePage() {
                   className="flex-1 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,#f8faff,#ffffff)] px-4 py-6 sm:px-8"
                 >
                   <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-                    这是经授权角色设定生成的 AI
-                    对话，不是明星本人。请勿依赖它处理医疗、法律或紧急问题。
+                    这是原创虚拟角色生成的 AI 对话，不对应任何真人。语音使用
+                    MiniMax 官方系统音色，请勿依赖它处理医疗、法律或紧急问题。
                   </div>
                   {messages.length === 0 && (
                     <div className="mx-auto max-w-md py-10 text-center">
@@ -1442,7 +1441,8 @@ export default function HomePage() {
                     </Button>
                   </div>
                   <p className="mt-2 text-center text-[11px] text-slate-400">
-                    语音最长 30 秒 · 会转写后发送给 MiniMax · 可随时关闭自动播放
+                    语音最长 30 秒 · AI 回复使用“温暖少女”系统音色 ·
+                    可随时关闭自动播放
                   </p>
                 </form>
               </section>
@@ -1673,7 +1673,7 @@ export default function HomePage() {
                   </div>
                   <div className="space-y-3">
                     {[
-                      ['1', '澈夜星河', '4,820'],
+                      ['1', '遥光收藏家', '4,820'],
                       ['2', '向光生长', '4,590'],
                       ['3', '小行星 0719', '4,260'],
                       ['18', '你', '2,180'],
@@ -1843,20 +1843,20 @@ export default function HomePage() {
                   <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" />
                   <div>
                     <h2 className="font-bold text-[#17213f]">
-                      授权与 AI 身份公开透明
+                      原创与 AI 身份公开透明
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      当前角色为 MVP
-                      虚构演示。正式上线前，每位明星的姓名、肖像、声音、人格设定和内容范围都需要独立授权并展示版本记录。
+                      星遥为完全原创虚拟角色，不使用任何真人的姓名、肖像或声纹。AI
+                      回复由 MiniMax 生成，语音固定使用官方“温暖少女”系统音色。
                     </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   className="shrink-0"
-                  onClick={() => announce('授权说明已打开')}
+                  onClick={() => announce('原创角色与 AI 说明已打开')}
                 >
-                  查看授权说明
+                  查看原创说明
                 </Button>
               </div>
             </section>
