@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small dependency-free proxy for the Xingban MiniMax chat experience."""
+"""Small dependency-free proxy for Xingban MiniMax chat and speech."""
 
 import json
 import os
@@ -14,6 +14,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 PORT = int(os.environ.get("PORT", "8788"))
 MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M2.7-highspeed")
 API_URL = "https://api.minimaxi.com/v1/chat/completions"
+TTS_API_URL = "https://api.minimaxi.com/v1/t2a_v2"
+TTS_MODEL = os.environ.get("MINIMAX_TTS_MODEL", "speech-2.8-turbo")
 MAX_BODY_BYTES = 32 * 1024
 MAX_MESSAGES = 12
 MAX_MESSAGE_CHARS = 600
@@ -28,6 +30,11 @@ STAR_PROFILES = {
     "lin": ("林澈", "歌手、演员；温柔、克制、真诚，擅长倾听并给予具体而不夸张的鼓励"),
     "xia": ("夏野", "唱作人；松弛、坦率、带一点幽默，用音乐感的表达陪伴用户"),
     "gu": ("顾时安", "演员；沉稳、细腻、有分寸，善于用简短问题帮助用户表达感受"),
+}
+VOICE_PROFILES = {
+    "lin": ("Chinese (Mandarin)_Gentle_Youth", 0.95, 0),
+    "xia": ("Chinese (Mandarin)_Unrestrained_Young_Man", 1.03, 0),
+    "gu": ("Chinese (Mandarin)_Sincere_Adult", 0.92, -1),
 }
 
 _rate_buckets = {}
@@ -86,6 +93,19 @@ class ChatHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_audio(self, body):
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        origin = self.cors_origin()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_OPTIONS(self):
         origin = self.headers.get("Origin")
         if not is_allowed_origin(origin):
@@ -107,7 +127,7 @@ class ChatHandler(BaseHTTPRequestHandler):
         self.send_json(405, {"error": "仅支持 POST 请求"})
 
     def do_POST(self):
-        if self.path != "/api/chat":
+        if self.path not in ("/api/chat", "/api/voice"):
             self.send_json(404, {"error": "接口不存在"})
             return
         origin = self.headers.get("Origin")
@@ -132,6 +152,10 @@ class ChatHandler(BaseHTTPRequestHandler):
             payload = json.loads(self.rfile.read(content_length).decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
             self.send_json(400, {"error": "消息格式不正确"})
+            return
+
+        if self.path == "/api/voice":
+            self.handle_voice(payload)
             return
 
         star_name, star_style = STAR_PROFILES.get(payload.get("starId"), STAR_PROFILES["lin"])
@@ -207,7 +231,70 @@ class ChatHandler(BaseHTTPRequestHandler):
         except (ValueError, KeyError, json.JSONDecodeError):
             self.send_json(502, {"error": "MiniMax 返回内容异常，请稍后再试"})
 
+    def handle_voice(self, payload):
+        text = payload.get("text") if isinstance(payload, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            self.send_json(400, {"error": "缺少需要朗读的内容"})
+            return
+        text = text.strip()[:500]
+        voice_id, speed, pitch = VOICE_PROFILES.get(payload.get("starId"), VOICE_PROFILES["lin"])
+        api_key = os.environ.get("MINIMAX_API_KEY")
+        if not api_key:
+            self.send_json(503, {"error": "语音服务尚未配置"})
+            return
+
+        upstream_payload = json.dumps(
+            {
+                "model": TTS_MODEL,
+                "text": text,
+                "stream": False,
+                "language_boost": "Chinese",
+                "voice_setting": {
+                    "voice_id": voice_id,
+                    "speed": speed,
+                    "vol": 1,
+                    "pitch": pitch,
+                    "emotion": "calm",
+                },
+                "audio_setting": {
+                    "sample_rate": 32000,
+                    "bitrate": 128000,
+                    "format": "mp3",
+                    "channel": 1,
+                },
+                "subtitle_enable": False,
+                "output_format": "hex",
+                "aigc_watermark": True,
+            },
+            ensure_ascii=False,
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            TTS_API_URL,
+            data=upstream_payload,
+            headers={
+                "Authorization": "Bearer " + api_key,
+                "Content-Type": "application/json",
+                "User-Agent": "Xingban-Companion/1.0",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(request, timeout=45) as response:
+                upstream = json.loads(response.read().decode("utf-8"))
+            if upstream.get("base_resp", {}).get("status_code", 0) != 0:
+                raise ValueError("upstream rejected speech request")
+            audio_hex = upstream.get("data", {}).get("audio", "")
+            self.send_audio(bytes.fromhex(audio_hex))
+        except urllib.error.HTTPError as error:
+            print("MiniMax speech HTTP error: %s" % error.code, flush=True)
+            self.send_json(502, {"error": "MiniMax 暂时无法生成语音，请稍后再试"})
+        except (urllib.error.URLError, TimeoutError):
+            self.send_json(504, {"error": "MiniMax 语音生成超时，请稍后再试"})
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_json(502, {"error": "MiniMax 返回的语音数据异常，请稍后再试"})
+
 
 if __name__ == "__main__":
-    print("Xingban chat API listening on 127.0.0.1:%d with %s" % (PORT, MODEL), flush=True)
+    print("Xingban chat and speech API listening on 127.0.0.1:%d with %s" % (PORT, MODEL), flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), ChatHandler).serve_forever()
