@@ -161,14 +161,14 @@ test('upstream errors and image content types remain meaningful', async () => {
   );
 });
 
-test('the real community component replaces demo posts in the community tab only', () => {
+test('archive-only release retains the public community until its backend is deployed', () => {
   const page = readFileSync(
     new URL('../app/page.tsx', import.meta.url),
     'utf8',
   );
-  assert.match(page, /value="community"[\s\S]*?<CommunityFeed \/>/);
+  assert.doesNotMatch(page, /<CommunityFeed \/>/);
   assert.match(page, /value="feed"[\s\S]*?<StarArchive/);
-  assert.doesNotMatch(
+  assert.match(
     page,
     /const communityPosts|MVP 暂以演示数据展示|28,619 位星友|likedPosts/,
   );
