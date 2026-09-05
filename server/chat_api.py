@@ -30,7 +30,7 @@ ALLOWED_ORIGINS = {
 }
 PERSONAS = json.loads(Path(__file__).with_name("companion_personas.json").read_text(encoding="utf-8"))
 VOICE_PROFILES = {
-    "xingyao": ("Chinese (Mandarin)_Warm_Girl", 1.02, 0, "happy"),
+    "xingyao": (os.environ.get("MINIMAX_VOICE_ID") or "xingbanVZFKSAIHT20260905v1", 1.0, 0),
 }
 
 _rate_buckets = {}
@@ -95,9 +95,11 @@ class ChatHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def send_audio(self, body):
+    def send_audio(self, body, voice_id):
         self.send_response(200)
         self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("X-Xingban-Voice-ID", voice_id)
+        self.send_header("X-AI-Generated", "true")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
@@ -236,8 +238,9 @@ class ChatHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "缺少需要朗读的内容"})
             return
         text = text.strip()[:500]
-        voice_id, speed, pitch, emotion = VOICE_PROFILES.get(
-            payload.get("starId"), VOICE_PROFILES["xingyao"]
+        star_id = payload.get("starId")
+        voice_id, speed, pitch = VOICE_PROFILES.get(
+            star_id if isinstance(star_id, str) else "xingyao", VOICE_PROFILES["xingyao"]
         )
         api_key = os.environ.get("MINIMAX_API_KEY")
         if not api_key:
@@ -255,7 +258,6 @@ class ChatHandler(BaseHTTPRequestHandler):
                     "speed": speed,
                     "vol": 1,
                     "pitch": pitch,
-                    "emotion": emotion,
                 },
                 "audio_setting": {
                     "sample_rate": 32000,
@@ -286,7 +288,9 @@ class ChatHandler(BaseHTTPRequestHandler):
             if upstream.get("base_resp", {}).get("status_code", 0) != 0:
                 raise ValueError("upstream rejected speech request")
             audio_hex = upstream.get("data", {}).get("audio", "")
-            self.send_audio(bytes.fromhex(audio_hex))
+            if not isinstance(audio_hex, str) or not audio_hex or not re.fullmatch(r"(?:[0-9a-fA-F]{2})+", audio_hex):
+                raise ValueError("empty or invalid audio")
+            self.send_audio(bytes.fromhex(audio_hex), voice_id)
         except urllib.error.HTTPError as error:
             print("MiniMax speech HTTP error: %s" % error.code, flush=True)
             self.send_json(502, {"error": "MiniMax 暂时无法生成语音，请稍后再试"})

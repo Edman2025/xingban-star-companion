@@ -67,8 +67,8 @@ class ChatPersonaTests(unittest.TestCase):
                 self.assertEqual(self.post(payload)[0], 400)
             upstream.assert_not_called()
 
-    def test_voice_remains_an_official_system_voice(self):
-        self.assertEqual(chat.VOICE_PROFILES["xingyao"][0], "Chinese (Mandarin)_Warm_Girl")
+    def test_voice_uses_authorized_reference_profile(self):
+        self.assertEqual(chat.VOICE_PROFILES["xingyao"][0], chat.os.environ.get("MINIMAX_VOICE_ID") or "xingbanVZFKSAIHT20260905v1")
 
 
 if __name__ == "__main__":

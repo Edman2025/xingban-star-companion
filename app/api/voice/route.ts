@@ -11,13 +11,12 @@ const allowedOrigins = new Set([
 
 const voiceProfiles: Record<
   string,
-  { voiceId: string; speed: number; pitch: number; emotion: string }
+  { voiceId: string; speed: number; pitch: number }
 > = {
   xingyao: {
-    voiceId: 'Chinese (Mandarin)_Warm_Girl',
-    speed: 1.02,
+    voiceId: process.env.MINIMAX_VOICE_ID || 'xingbanVZFKSAIHT20260905v1',
+    speed: 1,
     pitch: 0,
-    emotion: 'happy',
   },
 };
 
@@ -101,15 +100,17 @@ export async function POST(request: Request) {
     return jsonResponse(400, { error: '语音请求格式不正确' }, origin);
   }
 
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload))
+    return jsonResponse(400, { error: '语音请求格式不正确' }, origin);
   const body = payload as { starId?: unknown; text?: unknown };
   const text =
     typeof body.text === 'string'
       ? body.text.trim().slice(0, MAX_TEXT_CHARS)
       : '';
   if (!text) return jsonResponse(400, { error: '缺少需要朗读的内容' }, origin);
-  const profile =
-    voiceProfiles[typeof body.starId === 'string' ? body.starId : ''] ||
-    voiceProfiles.xingyao;
+  const profile = typeof body.starId === 'string' && Object.hasOwn(voiceProfiles, body.starId)
+    ? voiceProfiles[body.starId]
+    : voiceProfiles.xingyao;
 
   const apiKey = process.env.MINIMAX_API_KEY;
   if (!apiKey) return jsonResponse(503, { error: '语音服务尚未配置' }, origin);
@@ -131,7 +132,6 @@ export async function POST(request: Request) {
           speed: profile.speed,
           vol: 1,
           pitch: profile.pitch,
-          emotion: profile.emotion,
         },
         audio_setting: {
           sample_rate: 32000,
@@ -175,6 +175,8 @@ export async function POST(request: Request) {
     const headers = corsHeaders(origin);
     headers.set('Content-Type', 'audio/mpeg');
     headers.set('Content-Length', String(audio.byteLength));
+    headers.set('X-Xingban-Voice-ID', profile.voiceId);
+    headers.set('X-AI-Generated', 'true');
     return new Response(audio, { status: 200, headers });
   } catch (error) {
     if (error instanceof Error && error.name === 'TimeoutError') {

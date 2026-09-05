@@ -174,7 +174,7 @@ const communityPosts = [
     author: '遥光收藏家',
     level: 18,
     time: '6 分钟前',
-    text: '连续陪伴第 100 天！今天解锁了“清晨电台”回忆卡，系统音色听起来很温暖。',
+    text: '连续陪伴第 100 天！今天解锁了“清晨电台”回忆卡，AI 合成的声音听起来很温暖。',
     tag: '养成记录',
     likes: 328,
     comments: 42,
@@ -902,7 +902,7 @@ export default function HomePage() {
                   </DialogTitle>
                   <DialogDescription>
                     当前为非官方粉丝向 AI 演示，不代表趙露思本人或工作室；头像使用你提供的素材，语音使用
-                    MiniMax 官方系统音色，不使用本人声纹。
+                    已确认同意使用的参考音色，由 MiniMax 合成，并非本人实时说话。
                   </DialogDescription>
                 </DialogHeader>
                 <div className="mt-2 grid gap-3">
@@ -931,7 +931,7 @@ export default function HomePage() {
               className="hidden bg-emerald-50 text-emerald-700 sm:inline-flex"
               variant="secondary"
             >
-              <ShieldCheck /> 非官方粉丝向 · 系统音色
+              <ShieldCheck /> 非官方粉丝向 · AI 合成音色
             </Badge>
           </div>
 
@@ -1270,7 +1270,7 @@ export default function HomePage() {
                       className="hidden bg-blue-50 text-blue-700 sm:inline-flex"
                       variant="secondary"
                     >
-                      <Bot /> MiniMax 系统音色
+                      <Bot /> MiniMax 专属音色 · AI 合成
                     </Badge>
                   </div>
                 </div>
@@ -1281,7 +1281,7 @@ export default function HomePage() {
                 >
                   <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
                     你正在与趙露思主题 AI 进行虚构角色扮演，并非与本人聊天，不代表本人或工作室。
-                    回复由 MiniMax 实时生成，语音使用系统音色，不使用本人声纹；请勿依赖它处理医疗、法律或紧急问题。
+                    回复和语音均由 AI 实时生成，声音并非本人实时说话；请勿依赖它处理医疗、法律或紧急问题。
                   </div>
                   {messages.length === 0 && (
                     <div className="mx-auto max-w-md py-10 text-center">
@@ -1477,7 +1477,7 @@ export default function HomePage() {
                     </Button>
                   </div>
                   <p className="mt-2 text-center text-[11px] text-slate-400">
-                    语音最长 30 秒 · AI 回复使用“温暖少女”系统音色 ·
+                    语音最长 30 秒 · AI 回复使用专属合成音色 ·
                     可随时关闭自动播放
                   </p>
                 </form>
@@ -1883,7 +1883,7 @@ export default function HomePage() {
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
                       当前为非官方粉丝向演示，不代表趙露思本人或工作室。头像使用用户提供素材；AI
-                      回复由 MiniMax 生成，语音固定使用官方“温暖少女”系统音色，不采集或复刻本人声纹。
+                      回复由 MiniMax 生成；语音使用已确认同意使用的参考音色合成，并非本人录音或实时回复。
                     </p>
                   </div>
                 </div>
