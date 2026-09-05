@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 PORT = int(os.environ.get("PORT", "8788"))
+HOST = os.environ.get("HOST", "127.0.0.1")
 MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M3")
 API_URL = "https://api.minimaxi.com/v1/chat/completions"
 TTS_API_URL = "https://api.minimaxi.com/v1/t2a_v2"
@@ -27,14 +28,13 @@ ALLOWED_ORIGINS = {
     "https://xingban-star-companion.rzzttg2qgz.chatgpt.site",
 }
 STAR_PROFILES = {
-    "lin": ("林澈", "歌手、演员；温柔、克制、真诚，擅长倾听并给予具体而不夸张的鼓励"),
-    "xia": ("夏野", "唱作人；松弛、坦率、带一点幽默，用音乐感的表达陪伴用户"),
-    "gu": ("顾时安", "演员；沉稳、细腻、有分寸，善于用简短问题帮助用户表达感受"),
+    "xingyao": (
+        "星遥",
+        "完全原创的 22 岁虚拟唱作人；年轻、明亮、亲切、自然，善于倾听，表达真诚具体，偶尔带一点轻松幽默",
+    ),
 }
 VOICE_PROFILES = {
-    "lin": ("Chinese (Mandarin)_Gentle_Youth", 0.95, 0),
-    "xia": ("Chinese (Mandarin)_Unrestrained_Young_Man", 1.03, 0),
-    "gu": ("Chinese (Mandarin)_Sincere_Adult", 0.92, -1),
+    "xingyao": ("Chinese (Mandarin)_Warm_Girl", 1.02, 0, "happy"),
 }
 
 _rate_buckets = {}
@@ -158,7 +158,9 @@ class ChatHandler(BaseHTTPRequestHandler):
             self.handle_voice(payload)
             return
 
-        star_name, star_style = STAR_PROFILES.get(payload.get("starId"), STAR_PROFILES["lin"])
+        star_name, star_style = STAR_PROFILES.get(
+            payload.get("starId"), STAR_PROFILES["xingyao"]
+        )
         raw_messages = payload.get("messages")
         if not isinstance(raw_messages, list) or not raw_messages:
             self.send_json(400, {"error": "请输入聊天内容"})
@@ -189,6 +191,7 @@ class ChatHandler(BaseHTTPRequestHandler):
 
         system_prompt = (
             f"你是“{star_name}”的 AI 星伴。角色气质：{star_style}。"
+            "这是原创虚拟角色，不基于或模仿任何真实人物、明星或现有作品角色。"
             "你必须始终用中文自然交流，保持温暖、尊重、不过度亲密，不诱导依赖。"
             "你不是明星本人，不得声称拥有真实私生活、线下经历或与用户的现实关系；涉及身份时明确自己是 AI 星伴。"
             "不要捏造新闻、行程或票务信息；遇到医疗、法律、自伤或紧急风险时，建议用户联系专业人员或当地紧急服务。"
@@ -237,7 +240,9 @@ class ChatHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "缺少需要朗读的内容"})
             return
         text = text.strip()[:500]
-        voice_id, speed, pitch = VOICE_PROFILES.get(payload.get("starId"), VOICE_PROFILES["lin"])
+        voice_id, speed, pitch, emotion = VOICE_PROFILES.get(
+            payload.get("starId"), VOICE_PROFILES["xingyao"]
+        )
         api_key = os.environ.get("MINIMAX_API_KEY")
         if not api_key:
             self.send_json(503, {"error": "语音服务尚未配置"})
@@ -254,7 +259,7 @@ class ChatHandler(BaseHTTPRequestHandler):
                     "speed": speed,
                     "vol": 1,
                     "pitch": pitch,
-                    "emotion": "calm",
+                    "emotion": emotion,
                 },
                 "audio_setting": {
                     "sample_rate": 32000,
@@ -296,5 +301,9 @@ class ChatHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Xingban chat and speech API listening on 127.0.0.1:%d with %s" % (PORT, MODEL), flush=True)
-    ThreadingHTTPServer(("127.0.0.1", PORT), ChatHandler).serve_forever()
+    print(
+        "Xingban chat and speech API listening on %s:%d with %s"
+        % (HOST, PORT, MODEL),
+        flush=True,
+    )
+    ThreadingHTTPServer((HOST, PORT), ChatHandler).serve_forever()

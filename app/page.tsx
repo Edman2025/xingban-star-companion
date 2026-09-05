@@ -122,10 +122,8 @@ const navItems = [
 ];
 
 const initialMessages: Message[] = [];
-const CHAT_API_URL =
-  'https://xingban-star-companion.rzzttg2qgz.chatgpt.site/api/chat';
-const VOICE_API_URL =
-  'https://xingban-star-companion.rzzttg2qgz.chatgpt.site/api/voice';
+const CHAT_API_URL = '/api/chat';
+const VOICE_API_URL = '/api/voice';
 const STORAGE_KEY = 'xingban-mvp-state-v3';
 
 const feedItems = [
