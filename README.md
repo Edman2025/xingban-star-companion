@@ -16,11 +16,11 @@ npm ci
 npm run build
 ```
 
-静态产物位于 `dist/client`。生产环境配置模板见 `deploy/xingban.xunlian.co.conf`。
+默认静态产物位于 `dist/client`。托管 MiniMax API 路由时使用 `XINGBAN_SERVER_BUILD=1 npm run build` 生成服务端产物。
 
 ## MiniMax 聊天服务
 
-悄悄话功能通过 `server/chat_api.py` 在服务端调用 MiniMax，API 密钥不会发送到浏览器。复制 `.env.example` 并设置 `MINIMAX_API_KEY` 后启动：
+悄悄话功能通过服务端 API 路由调用 MiniMax，API 密钥不会发送到浏览器。`server/chat_api.py` 是自建服务器的可选代理实现；复制 `.env.example` 并设置 `MINIMAX_API_KEY` 后可启动：
 
 ```bash
 set -a
