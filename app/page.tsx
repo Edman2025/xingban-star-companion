@@ -98,18 +98,16 @@ type SpeechRecognitionFactory = new () => SpeechRecognitionLike;
 type StarProfile = {
   id: string;
   name: string;
-  initial: string;
+  avatar: string;
   role: string;
-  color: string;
 };
 
 const stars: StarProfile[] = [
   {
     id: 'xingyao',
-    name: '星遥',
-    initial: '遥',
-    role: '原创虚拟唱作人',
-    color: '#f0785d',
+    name: '趙露思',
+    avatar: '/zhaolusi-avatar.png',
+    role: '非官方粉丝主题',
   },
 ];
 
@@ -124,13 +122,13 @@ const navItems = [
 const initialMessages: Message[] = [];
 const CHAT_API_URL = '/api/chat';
 const VOICE_API_URL = '/api/voice';
-const STORAGE_KEY = 'xingban-mvp-state-v3';
+const STORAGE_KEY = 'xingban-mvp-state-v4';
 
 const feedItems = [
   {
     type: '新歌',
     title: '原创单曲《向晴而行》概念短片上线',
-    body: '星遥的首支原创概念短片已发布，记录从清晨城市到星光舞台的一天。',
+    body: '粉丝主题演示内容，用于展示动态聚合与提醒交互，并非真实艺人行程。',
     time: '12 分钟前',
     icon: Play,
     accent: 'bg-[#e66e5f]',
@@ -845,22 +843,21 @@ export default function HomePage() {
                   <Button
                     variant="ghost"
                     className="h-11 rounded-2xl px-2 hover:bg-slate-100 sm:px-3"
-                    aria-label="查看原创角色设定"
+                    aria-label="查看趙露思主题角色说明"
                   />
                 }
               >
-                <span
-                  className="grid size-8 place-items-center rounded-xl text-sm font-bold text-white"
-                  style={{ backgroundColor: star.color }}
-                >
-                  {star.initial}
-                </span>
+                <img
+                  src={star.avatar}
+                  alt={`${star.name}主题头像`}
+                  className="size-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200"
+                />
                 <span className="text-left">
                   <span className="block text-sm font-bold leading-4">
                     {star.name}
                   </span>
                   <span className="block text-[11px] text-slate-500">
-                    原创角色空间
+                    非官方粉丝空间
                   </span>
                 </span>
                 <ChevronDown className="size-4 text-slate-400" />
@@ -868,11 +865,11 @@ export default function HomePage() {
               <DialogContent className="max-w-[460px] rounded-[24px] p-6">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold">
-                    原创角色设定
+                    角色与授权说明
                   </DialogTitle>
                   <DialogDescription>
-                    星遥是星伴首位完全原创的虚拟明星，不基于任何真人；语音使用
-                    MiniMax 官方系统音色。
+                    当前为非官方粉丝向 AI 演示，不代表趙露思本人或工作室；头像使用你提供的素材，语音使用
+                    MiniMax 官方系统音色，不使用本人声纹。
                   </DialogDescription>
                 </DialogHeader>
                 <div className="mt-2 grid gap-3">
@@ -883,12 +880,11 @@ export default function HomePage() {
                       onClick={() => chooseStar(profile)}
                       className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[#e3b14e] hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#e3b14e]/25"
                     >
-                      <span
-                        className="mb-4 grid size-11 place-items-center rounded-2xl text-base font-bold text-white"
-                        style={{ backgroundColor: profile.color }}
-                      >
-                        {profile.initial}
-                      </span>
+                      <img
+                        src={profile.avatar}
+                        alt={`${profile.name}主题头像`}
+                        className="mb-4 size-11 rounded-2xl object-cover ring-1 ring-slate-200"
+                      />
                       <span className="block font-bold">{profile.name}</span>
                       <span className="text-xs text-slate-500">
                         {profile.role}
@@ -902,7 +898,7 @@ export default function HomePage() {
               className="hidden bg-emerald-50 text-emerald-700 sm:inline-flex"
               variant="secondary"
             >
-              <ShieldCheck /> 原创 IP · 系统音色
+              <ShieldCheck /> 非官方粉丝向 · 系统音色
             </Badge>
           </div>
 
@@ -930,7 +926,7 @@ export default function HomePage() {
                   {currentGreeting}，星友
                 </p>
                 <h1 className="text-[clamp(1.65rem,3vw,2.35rem)] font-black tracking-[-0.04em] text-[#17213f]">
-                  {star.name}正在等你回来
+                  {star.name}主题星伴在等你回来
                 </h1>
               </div>
               <p className="hidden text-sm text-slate-500 md:block">
@@ -944,7 +940,7 @@ export default function HomePage() {
                 <div className="absolute inset-y-0 right-0 w-[62%] overflow-hidden max-md:w-full max-md:opacity-70">
                   <img
                     src="/xingyao-character.png"
-                    alt="原创虚拟明星星遥的全身卡通形象"
+                    alt="AI 星伴手办演示形象"
                     className="companion-float h-full w-full object-contain object-center p-3 sm:p-5"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#132143] via-[#132143]/20 to-transparent md:from-[#132143]/85" />
@@ -956,13 +952,13 @@ export default function HomePage() {
                       className="mb-5 border-white/15 bg-white/10 text-white"
                       variant="outline"
                     >
-                      <Bot /> AI 星伴 · 非真人
+                      <Bot /> AI 星伴 · 非本人
                     </Badge>
                     <p className="max-w-[420px] text-[clamp(1.45rem,3vw,2.15rem)] font-bold leading-[1.3] tracking-tight">
                       “今天也别急着赶路，我把好心情分你一半。”
                     </p>
                     <p className="mt-3 text-sm text-white/60">
-                      — {star.name}的今日陪伴留言
+                      — AI 生成陪伴留言，不代表本人
                     </p>
                   </div>
 
@@ -1193,11 +1189,12 @@ export default function HomePage() {
               <section className="flex min-h-[calc(100vh-136px)] flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
                   <div className="flex items-center gap-3">
-                    <span
-                      className="relative grid size-11 place-items-center rounded-2xl text-base font-bold text-white"
-                      style={{ backgroundColor: star.color }}
-                    >
-                      {star.initial}
+                    <span className="relative size-11 shrink-0">
+                      <img
+                        src={star.avatar}
+                        alt={`${star.name}主题头像`}
+                        className="size-11 rounded-2xl object-cover ring-1 ring-slate-200"
+                      />
                       <span className="absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-white bg-emerald-500" />
                     </span>
                     <div>
@@ -1250,8 +1247,8 @@ export default function HomePage() {
                   className="flex-1 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,#f8faff,#ffffff)] px-4 py-6 sm:px-8"
                 >
                   <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-                    这是原创虚拟角色生成的 AI 对话，不对应任何真人。语音使用
-                    MiniMax 官方系统音色，请勿依赖它处理医疗、法律或紧急问题。
+                    这是非官方粉丝向 AI 对话，不代表趙露思本人或工作室。语音使用
+                    MiniMax 官方系统音色，不使用本人声纹；请勿依赖它处理医疗、法律或紧急问题。
                   </div>
                   {messages.length === 0 && (
                     <div className="mx-auto max-w-md py-10 text-center">
@@ -1272,11 +1269,17 @@ export default function HomePage() {
                       key={message.id}
                       className={`mx-auto flex max-w-2xl gap-3 ${message.from === 'user' ? 'flex-row-reverse' : ''}`}
                     >
-                      <span
-                        className={`grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold ${message.from === 'ai' ? 'bg-[#17213f] text-[#efbd59]' : 'bg-slate-200 text-slate-600'}`}
-                      >
-                        {message.from === 'ai' ? star.initial : '我'}
-                      </span>
+                      {message.from === 'ai' ? (
+                        <img
+                          src={star.avatar}
+                          alt={`${star.name}主题头像`}
+                          className="size-8 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
+                        />
+                      ) : (
+                        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-200 text-xs font-bold text-slate-600">
+                          我
+                        </span>
+                      )}
                       <div
                         className={`max-w-[78%] ${message.from === 'user' ? 'text-right' : ''}`}
                       >
@@ -1332,9 +1335,11 @@ export default function HomePage() {
                       className="mx-auto flex max-w-2xl gap-3"
                       aria-live="polite"
                     >
-                      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#17213f] text-[#efbd59]">
-                        {star.initial}
-                      </span>
+                      <img
+                        src={star.avatar}
+                        alt={`${star.name}主题头像`}
+                        className="size-8 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
+                      />
                       <div className="flex items-center gap-2 rounded-[20px] rounded-tl-md bg-[#edf2fb] px-4 py-3 text-sm text-slate-500">
                         <LoaderCircle className="size-4 animate-spin" /> MiniMax
                         正在回复…
@@ -1841,20 +1846,20 @@ export default function HomePage() {
                   <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" />
                   <div>
                     <h2 className="font-bold text-[#17213f]">
-                      原创与 AI 身份公开透明
+                      粉丝主题与 AI 身份公开透明
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      星遥为完全原创虚拟角色，不使用任何真人的姓名、肖像或声纹。AI
-                      回复由 MiniMax 生成，语音固定使用官方“温暖少女”系统音色。
+                      当前为非官方粉丝向演示，不代表趙露思本人或工作室。头像使用用户提供素材；AI
+                      回复由 MiniMax 生成，语音固定使用官方“温暖少女”系统音色，不采集或复刻本人声纹。
                     </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   className="shrink-0"
-                  onClick={() => announce('原创角色与 AI 说明已打开')}
+                  onClick={() => announce('粉丝主题与 AI 说明已打开')}
                 >
-                  查看原创说明
+                  查看说明
                 </Button>
               </div>
             </section>
