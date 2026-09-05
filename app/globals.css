@@ -151,6 +151,38 @@
   animation: float 5s ease-in-out infinite;
 }
 
+/* Keep the approved PNG unmodified. Crop only its display for small avatars. */
+.companion-avatar {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  overflow: hidden;
+  vertical-align: middle;
+  background: #f7f3ef;
+}
+
+.companion-avatar img {
+  position: absolute;
+  left: -210%;
+  top: -34%;
+  width: 500%;
+  max-width: none;
+  height: auto;
+}
+
+.companion-artwork {
+  overflow: hidden;
+  background: #f7f4f0;
+}
+
+.companion-artwork-image {
+  display: block;
+  width: 100%;
+  height: clamp(360px, 62svh, 520px);
+  object-fit: contain;
+  object-position: center;
+}
+
 .pulse-soft {
   animation: pulse-soft 2.6s ease-in-out infinite;
 }

@@ -18,6 +18,10 @@ npm run build
 
 默认静态产物位于 `dist/client`。托管 MiniMax API 路由时使用 `XINGBAN_SERVER_BUILD=1 npm run build` 生成服务端产物。
 
+## 当前角色形象
+
+首页主视觉、顶部角色入口、角色说明和聊天头像统一使用用户确认的 `public/companion-modern-v4.png`。文件为原始图片的逐字节副本，不重新生成、不加载 Blender / GLB 模型。首页完整展示人物并将操作区放在图片下方；小头像只通过 CSS 裁切面部，保留原文件。原有养成数据、聊天记录、模型服务和系统音色保持不变。
+
 ## MiniMax 对话与语音服务
 
 悄悄话通过服务端 API 调用最新 MiniMax M3 生成真实回复，再用最新一代 MiniMax Speech 2.8 Turbo 合成 MP3 语音，API 密钥不会发送到浏览器。用户语音由浏览器麦克风实时识别成文字，并在本次会话中保留可回放的原始录音；不支持语音识别的浏览器会提示改用文字输入。

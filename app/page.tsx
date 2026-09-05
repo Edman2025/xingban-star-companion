@@ -106,10 +106,26 @@ const stars: StarProfile[] = [
   {
     id: 'xingyao',
     name: '趙露思',
-    avatar: '/zhaolusi-avatar.png',
+    avatar: '/companion-modern-v4.png',
     role: '非官方粉丝主题',
   },
 ];
+
+function CompanionAvatar({
+  src,
+  name,
+  className = '',
+}: {
+  src: string;
+  name: string;
+  className?: string;
+}) {
+  return (
+    <span className={`companion-avatar ${className}`}>
+      <img src={src} alt={`${name}主题头像`} width={1024} height={1536} />
+    </span>
+  );
+}
 
 const navItems = [
   { value: 'home', label: '今日陪伴', icon: Home },
@@ -847,10 +863,10 @@ export default function HomePage() {
                   />
                 }
               >
-                <img
+                <CompanionAvatar
                   src={star.avatar}
-                  alt={`${star.name}主题头像`}
-                  className="size-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200"
+                  name={star.name}
+                  className="size-8 rounded-full ring-1 ring-slate-200"
                 />
                 <span className="text-left">
                   <span className="block text-sm font-bold leading-4">
@@ -880,10 +896,10 @@ export default function HomePage() {
                       onClick={() => chooseStar(profile)}
                       className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[#e3b14e] hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#e3b14e]/25"
                     >
-                      <img
+                      <CompanionAvatar
                         src={profile.avatar}
-                        alt={`${profile.name}主题头像`}
-                        className="mb-4 size-11 rounded-2xl object-cover ring-1 ring-slate-200"
+                        name={profile.name}
+                        className="mb-4 size-11 rounded-2xl ring-1 ring-slate-200"
                       />
                       <span className="block font-bold">{profile.name}</span>
                       <span className="text-xs text-slate-500">
@@ -935,26 +951,27 @@ export default function HomePage() {
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.48fr)_minmax(330px,0.72fr)]">
-              <section className="relative min-h-[500px] overflow-hidden rounded-[26px] bg-[#132143] text-white shadow-[0_28px_70px_-38px_rgba(10,23,55,0.75)] sm:min-h-[540px] sm:rounded-[30px]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_22%,rgba(245,194,94,0.22),transparent_28%),linear-gradient(130deg,rgba(20,36,76,0.25),rgba(7,14,34,0.72))]" />
-                <div className="absolute inset-y-0 right-0 w-[62%] overflow-hidden max-md:w-full max-md:opacity-70">
+              <section className="relative overflow-hidden rounded-[26px] bg-[#132143] text-white shadow-[0_28px_70px_-38px_rgba(10,23,55,0.75)] sm:rounded-[30px]">
+                <div className="companion-artwork">
                   <img
-                    src="/xingyao-character.png"
-                    alt="AI 星伴手办演示形象"
-                    className="companion-float h-full w-full object-contain object-center p-3 sm:p-5"
+                    src={star.avatar}
+                    alt="蓝色夹克、橙色裙装与棕色长发的 AI 星伴形象，非本人"
+                    width={1024}
+                    height={1536}
+                    fetchPriority="high"
+                    className="companion-artwork-image"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#132143] via-[#132143]/20 to-transparent md:from-[#132143]/85" />
                 </div>
 
-                <div className="relative z-10 flex min-h-[500px] flex-col justify-between p-5 sm:min-h-[540px] sm:p-8 lg:p-10">
+                <div className="relative flex flex-col gap-5 p-5 sm:p-6">
                   <div>
                     <Badge
-                      className="mb-5 border-white/15 bg-white/10 text-white"
+                      className="mb-3 border-white/15 bg-white/10 text-white"
                       variant="outline"
                     >
                       <Bot /> AI 星伴 · 非本人
                     </Badge>
-                    <p className="max-w-[420px] text-[clamp(1.45rem,3vw,2.15rem)] font-bold leading-[1.3] tracking-tight">
+                    <p className="text-lg font-bold leading-relaxed tracking-tight sm:text-xl">
                       “今天也别急着赶路，我把好心情分你一半。”
                     </p>
                     <p className="mt-3 text-sm text-white/60">
@@ -962,7 +979,7 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  <div className="max-w-[520px] rounded-[24px] border border-white/12 bg-[#081128]/72 p-5 backdrop-blur-xl">
+                  <div className="rounded-[24px] border border-white/12 bg-[#081128]/72 p-4 sm:p-5">
                     <div className="mb-5 flex items-center justify-between">
                       <div>
                         <p className="text-xs text-white/50">手办形态</p>
@@ -1190,10 +1207,10 @@ export default function HomePage() {
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
                   <div className="flex items-center gap-3">
                     <span className="relative size-11 shrink-0">
-                      <img
+                      <CompanionAvatar
                         src={star.avatar}
-                        alt={`${star.name}主题头像`}
-                        className="size-11 rounded-2xl object-cover ring-1 ring-slate-200"
+                        name={star.name}
+                        className="size-11 rounded-2xl ring-1 ring-slate-200"
                       />
                       <span className="absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-white bg-emerald-500" />
                     </span>
@@ -1270,10 +1287,10 @@ export default function HomePage() {
                       className={`mx-auto flex max-w-2xl gap-3 ${message.from === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                       {message.from === 'ai' ? (
-                        <img
+                        <CompanionAvatar
                           src={star.avatar}
-                          alt={`${star.name}主题头像`}
-                          className="size-8 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
+                          name={star.name}
+                          className="size-8 rounded-xl ring-1 ring-slate-200"
                         />
                       ) : (
                         <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-slate-200 text-xs font-bold text-slate-600">
@@ -1335,10 +1352,10 @@ export default function HomePage() {
                       className="mx-auto flex max-w-2xl gap-3"
                       aria-live="polite"
                     >
-                      <img
+                      <CompanionAvatar
                         src={star.avatar}
-                        alt={`${star.name}主题头像`}
-                        className="size-8 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
+                        name={star.name}
+                        className="size-8 rounded-xl ring-1 ring-slate-200"
                       />
                       <div className="flex items-center gap-2 rounded-[20px] rounded-tl-md bg-[#edf2fb] px-4 py-3 text-sm text-slate-500">
                         <LoaderCircle className="size-4 animate-spin" /> MiniMax
