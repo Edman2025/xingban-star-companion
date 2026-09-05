@@ -14,6 +14,7 @@ import {
   Heart,
   Home,
   LockKeyhole,
+  LoaderCircle,
   MapPin,
   MessageCircle,
   Newspaper,
@@ -86,21 +87,9 @@ const navItems = [
   { value: 'profile', label: '我的星球', icon: UserRound },
 ];
 
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    from: 'ai',
-    text: '晚上好。今天也辛苦了。我刚结束排练，想先听听你今天过得怎么样。',
-    time: '21:08',
-  },
-  { id: 2, from: 'user', text: '有点累，但看到你就好多了。', time: '21:09' },
-  {
-    id: 3,
-    from: 'ai',
-    text: '那我们先不赶时间。慢慢呼吸一下，把最累的那件事告诉我，好吗？',
-    time: '21:09',
-  },
-];
+const initialMessages: Message[] = [];
+const CHAT_API_URL = 'https://xingban.xunlian.co/api/chat';
+const STORAGE_KEY = 'xingban-mvp-state-v2';
 
 const feedItems = [
   {
@@ -187,6 +176,8 @@ export default function HomePage() {
   const [fedToday, setFedToday] = useState(1);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [messageInput, setMessageInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [chatError, setChatError] = useState('');
   const [reminders, setReminders] = useState<Record<string, boolean>>({
     concert: true,
     movie: false,
@@ -195,6 +186,7 @@ export default function HomePage() {
   const [status, setStatus] = useState('');
   const [mounted, setMounted] = useState(false);
   const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const level = 7;
   const taskProgress = [fedToday >= 2, messages.length > initialMessages.length, reminders.concert].filter(
@@ -203,7 +195,7 @@ export default function HomePage() {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem('xingban-mvp-state');
+      const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         if (data.starId) setStar(stars.find((item) => item.id === data.starId) ?? stars[0]);
@@ -223,10 +215,14 @@ export default function HomePage() {
   useEffect(() => {
     if (!mounted) return;
     window.localStorage.setItem(
-      'xingban-mvp-state',
+      STORAGE_KEY,
       JSON.stringify({ starId: star.id, stats, xp, fedToday, messages, reminders, likedPosts }),
     );
   }, [mounted, star, stats, xp, fedToday, messages, reminders, likedPosts]);
+
+  useEffect(() => {
+    chatScrollRef.current?.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, isSending]);
 
   useEffect(() => {
     return () => {
@@ -330,40 +326,55 @@ export default function HomePage() {
   function chooseStar(profile: StarProfile) {
     setStar(profile);
     setStarDialogOpen(false);
-    setMessages([
-      {
-        id: Date.now(),
-        from: 'ai',
-        text: `你好，我是${profile.name}的 AI 星伴。谢谢你来找我，今天想聊些什么？`,
-        time: timeNow(),
-      },
-    ]);
+    setMessages([]);
+    setChatError('');
     announce(`已切换为 ${profile.name} 的陪伴空间`);
   }
 
-  function sendMessage(event: FormEvent<HTMLFormElement>) {
+  async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = messageInput.trim();
-    if (!text) return;
+    if (!text || isSending) return;
 
-    const userMessage: Message = { id: Date.now(), from: 'user', text, time: timeNow() };
-    const replyText = text.includes('累')
-      ? '听到了。先把今天的疲惫放在这里吧，不需要马上变好。我陪你坐一会儿。'
-      : text.includes('演唱会') || text.includes('票')
-        ? '上海站的预售是 9 月 12 日 14:00。我可以提前提醒你，但购票要通过官方平台完成。'
-        : text.includes('开心')
-          ? '那真好。你的好心情也分给我一点吧——要不要把今天最开心的瞬间记进回忆卡？'
-          : '我在认真听。你可以继续说，或者我们一起做一个三十秒的呼吸练习。';
+    const userMessage: Message = { id: Date.now(), from: 'user', text: text.slice(0, 600), time: timeNow() };
+    const history = messages.slice(-11).map((message) => ({
+      role: message.from === 'ai' ? 'assistant' : 'user',
+      content: message.text,
+    }));
 
-    setMessages((current) => [
-      ...current,
-      userMessage,
-      { id: Date.now() + 1, from: 'ai', text: replyText, time: timeNow() },
-    ]);
+    setMessages((current) => [...current, userMessage]);
     setMessageInput('');
-    setStats((current) => ({ ...current, bond: clamp(current.bond + 3) }));
-    setXp((current) => Math.min(100, current + 4));
-    announce('已收到回应，亲密经验 +4');
+    setChatError('');
+    setIsSending(true);
+
+    try {
+      const response = await fetch(CHAT_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          starId: star.id,
+          messages: [...history, { role: 'user', content: userMessage.text }],
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as { reply?: string; error?: string } | null;
+      if (!response.ok || !data?.reply) {
+        throw new Error(data?.error || '回复生成失败，请稍后再试');
+      }
+
+      setMessages((current) => [
+        ...current,
+        { id: Date.now(), from: 'ai', text: data.reply as string, time: timeNow() },
+      ]);
+      setStats((current) => ({ ...current, bond: clamp(current.bond + 3) }));
+      setXp((current) => Math.min(100, current + 4));
+      announce('MiniMax 已生成回复，亲密经验 +4');
+    } catch (error) {
+      setMessages((current) => current.filter((message) => message.id !== userMessage.id));
+      setMessageInput(text);
+      setChatError(error instanceof Error ? error.message : '网络暂时不可用，请稍后再试');
+    } finally {
+      setIsSending(false);
+    }
   }
 
   function toggleReminder(key: string) {
@@ -691,16 +702,23 @@ export default function HomePage() {
                     </span>
                     <div>
                       <h1 className="font-black text-[#17213f]">和{star.name}说悄悄话</h1>
-                      <p className="text-xs text-slate-500">AI 星伴 · 记忆已开启</p>
+                      <p className="text-xs text-slate-500">MiniMax 实时生成 · 记忆已开启</p>
                     </div>
                   </div>
-                  <Badge className="bg-blue-50 text-blue-700" variant="secondary"><Bot /> AI 生成</Badge>
+                  <Badge className="bg-blue-50 text-blue-700" variant="secondary"><Bot /> MiniMax</Badge>
                 </div>
 
-                <div className="flex-1 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,#f8faff,#ffffff)] px-4 py-6 sm:px-8">
+                <div ref={chatScrollRef} className="flex-1 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,#f8faff,#ffffff)] px-4 py-6 sm:px-8">
                   <div className="mx-auto max-w-2xl rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
                     这是经授权角色设定生成的 AI 对话，不是明星本人。请勿依赖它处理医疗、法律或紧急问题。
                   </div>
+                  {messages.length === 0 && (
+                    <div className="mx-auto max-w-md py-10 text-center">
+                      <span className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-[#17213f] text-[#efbd59]"><Sparkles className="size-5" /></span>
+                      <p className="font-bold text-[#17213f]">现在可以开始真实对话</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">告诉{star.name}的 AI 星伴你今天的心情，回复将由 MiniMax 实时生成。</p>
+                    </div>
+                  )}
                   {messages.map((message) => (
                     <div key={message.id} className={`mx-auto flex max-w-2xl gap-3 ${message.from === 'user' ? 'flex-row-reverse' : ''}`}>
                       <span className={`grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold ${message.from === 'ai' ? 'bg-[#17213f] text-[#efbd59]' : 'bg-slate-200 text-slate-600'}`}>
@@ -714,6 +732,19 @@ export default function HomePage() {
                       </div>
                     </div>
                   ))}
+                  {isSending && (
+                    <div className="mx-auto flex max-w-2xl gap-3" aria-live="polite">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#17213f] text-[#efbd59]">{star.initial}</span>
+                      <div className="flex items-center gap-2 rounded-[20px] rounded-tl-md bg-[#edf2fb] px-4 py-3 text-sm text-slate-500">
+                        <LoaderCircle className="size-4 animate-spin" /> MiniMax 正在回复…
+                      </div>
+                    </div>
+                  )}
+                  {chatError && (
+                    <div className="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                      {chatError}
+                    </div>
+                  )}
                 </div>
 
                 <form onSubmit={sendMessage} className="border-t border-slate-100 bg-white p-4 sm:p-5">
@@ -721,6 +752,8 @@ export default function HomePage() {
                     <textarea
                       value={messageInput}
                       onChange={(event) => setMessageInput(event.target.value)}
+                      disabled={isSending}
+                      maxLength={600}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' && !event.shiftKey) {
                           event.preventDefault();
@@ -732,7 +765,9 @@ export default function HomePage() {
                       rows={1}
                       className="min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-[16px] leading-6 outline-none placeholder:text-slate-400"
                     />
-                    <Button type="submit" size="icon-lg" className="size-10 rounded-2xl" aria-label="发送消息"><Send /></Button>
+                    <Button type="submit" size="icon-lg" className="size-10 rounded-2xl" aria-label="发送消息" disabled={isSending || !messageInput.trim()}>
+                      {isSending ? <LoaderCircle className="animate-spin" /> : <Send />}
+                    </Button>
                   </div>
                   <p className="mt-2 text-center text-[11px] text-slate-400">发送即同意进行内容安全检测 · 长按消息可管理记忆</p>
                 </form>

@@ -1,0 +1,19 @@
+[Unit]
+Description=Xingban MiniMax Chat API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ttp
+Group=ttp
+WorkingDirectory=/home/ttp/apps/xingban/current
+EnvironmentFile=/home/ttp/apps/xingban/shared/chat.env
+ExecStart=/usr/bin/python3 /home/ttp/apps/xingban/current/server/chat_api.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
